@@ -1,9 +1,25 @@
+
+# pacote REST Client
+
 POST http://localhost:8000/order HTTP/1.1
 Host: localhost:8000
 Content-Type: application/json
 
 {
-    "id":"a",
-    "price": 100.5,
+    "id":"Teste 2",
+    "price": 100.6,
     "tax": 0.5
 }
+
+
+
+
+# GraphQL
+# mutation CreateOrder{
+#   createOrder(input:{ ID: "Teste Graphl" , Price: 110.2, Tax: 2.0 }) {
+# 		ID
+# 		Price
+#   	Tax
+#     FinalPrice
+#   }
+# }

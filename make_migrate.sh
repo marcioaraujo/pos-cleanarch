@@ -1,4 +1,5 @@
-# Se necessário acesse o mysql manualmente e:
+# Se necessário acesse o mysql manualmente e ajuste as permissões:
+# docker exec -it mysql bash
 # GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'root';
 # FLUSH PRIVILEGES;
 
