@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 
@@ -96,6 +97,7 @@ func getRabbitMQChannel() *amqp.Channel {
 	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%s", configs.RABBITMQ_USER, configs.RABBITMQ_PASS, configs.RABBITMQ_IP, configs.RABBITMQ_PORT))
 
 	if err != nil {
+		log.Fatalf("Failed to connect to RabbitMQ: %s", err)
 		panic(err)
 	}
 	ch, err := conn.Channel()

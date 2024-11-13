@@ -1,6 +1,3 @@
-# Primeira vez pode ser necessário
-# ./make_migrate.sh 
-
 
 
 cd cmd/ordersystem

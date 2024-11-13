@@ -14,7 +14,7 @@ Para a criação do banco de dados, utilize o Docker (Dockerfile / docker-compos
 
 Inclua um README.md com os passos a serem executados no desafio e a porta em que a aplicação deverá responder em cada serviço.
 
-## Instruções de desenvolvimento
+## Instruções de desenvolvimento e teste
 
 Para regerar fontes da injeção de dependências (Wire):
 https://github.com/google/wire
@@ -62,6 +62,13 @@ Executar aplicação
 
 ```bash
 ./init.sh
+```
+
+ou
+
+```bash
+cd cmd/ordersystem
+go run main.go wire_gen.go
 ```
 
 Portas padrão:
