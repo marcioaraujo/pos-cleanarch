@@ -1,8 +1,8 @@
-version: '3.8'
 
 services:
   mysql:
-    image: mysql/mysql-server:5.7
+    image: mysql:5.7
+    platform: linux/amd64
     container_name: mysql
     restart: always
     environment:
@@ -14,12 +14,14 @@ services:
       - 3306:3306
     volumes:
       - .docker/mysql:/var/lib/mysql
-      - ./docker/mysql/init:/docker-entrypoint-initdb.d
-    networks:
-      - localNetwork
+    healthcheck:
+      test: ["CMD", "ping", "-h", "localhost"]
+      interval: 15s
+      retries: 3
 
   rabbitmq:
-    image: rabbitmq:3-management
+    image: rabbitmq:latest
+    platform: linux/amd64
     container_name: rabbitmq
     restart: always
     ports:
@@ -28,32 +30,36 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
-    networks:
-      - localNetwork
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 15s
+      retries: 3
 
-  migrate:
+  migration:
+    build:
+      context: .
+      dockerfile: Dockerfile.migration
+    container_name: migration
+    depends_on:
+      - mysql
+    environment:
+      DB_URL: "mysql://root:root@tcp(mysql:3306)/orders"
+
+  app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: migrate
+    container_name: app
     depends_on:
-      - mysql
-      - rabbitmq
-    entrypoint: >
-      /bin/sh -c "
-        until mysql -h mysql -u root -proot -e 'select 1'; do
-          echo 'Aguardando MySQL...';
-          sleep 3;
-        done;
-        echo 'Iniciando migrate...';
-        migrate -path=/migrations -database 'mysql://root:root@tcp(mysql:3306)/orders' -verbose up;        
-      "
-    volumes:
-      - ./cmd/ordersystem:/app
-      - ./sql/migrations:/migrations
-    networks:
-      - localNetwork
-
-networks:
-  localNetwork:
-    driver: bridge    
+      mysql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      migration:
+        condition: service_started
+    env_file:
+      - ./cmd/ordersystem/.env
+    ports:
+      - "8000:8000"      # web
+      - "50051:50051"    # gRPC
+      - "8080:8080"      # GraphQL    
