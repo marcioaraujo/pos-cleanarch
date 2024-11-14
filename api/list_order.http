@@ -1,0 +1,32 @@
+GET http://localhost:8000/orders HTTP/1.1
+Host: localhost:8000
+Content-Type: application/json
+
+
+
+# HTTP/1.1 200 OK
+# Content-Type: application/json
+# Date: Thu, 14 Nov 2024 01:09:01 GMT
+# Content-Length: 186
+# Connection: close
+
+# [
+#   {
+#     "id": "evans 2",
+#     "price": 200,
+#     "tax": 0.6,
+#     "final_price": 200.6
+#   },
+#   {
+#     "id": "Teste 1",
+#     "price": 300,
+#     "tax": 0.5,
+#     "final_price": 300.5
+#   },
+#   {
+#     "id": "Teste Graphl 3",
+#     "price": 110.2,
+#     "tax": 2,
+#     "final_price": 112.2
+#   }
+# ]

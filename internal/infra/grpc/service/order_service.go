@@ -10,13 +10,13 @@ import (
 type OrderService struct {
 	pb.UnimplementedOrderServiceServer
 	CreateOrderUseCase usecase.CreateOrderUseCase
-	ListOrdersUseCase  usecase.ListOrdersUseCase
+	ListOrderUseCase   usecase.ListOrderUseCase
 }
 
-func NewOrderService(createOrderUseCase usecase.CreateOrderUseCase, listOrdersUseCase usecase.ListOrdersUseCase) *OrderService {
+func NewOrderService(createOrderUseCase usecase.CreateOrderUseCase, listOrderUseCase usecase.ListOrderUseCase) *OrderService {
 	return &OrderService{
 		CreateOrderUseCase: createOrderUseCase,
-		ListOrdersUseCase:  listOrdersUseCase,
+		ListOrderUseCase:   listOrderUseCase,
 	}
 }
 
@@ -32,31 +32,30 @@ func (s *OrderService) CreateOrder(ctx context.Context, in *pb.CreateOrderReques
 	}
 	return &pb.CreateOrderResponse{
 		Id:         output.ID,
-		Price:      output.Price,
-		Tax:        output.Tax,
-		FinalPrice: output.FinalPrice,
+		Price:      float32(output.Price),
+		Tax:        float32(output.Tax),
+		FinalPrice: float32(output.FinalPrice),
 	}, nil
 }
 
-func (s *OrderService) ListOrders(ctx context.Context, in *pb.Blank) (*pb.ListOrdersResponse, error) {
-	output, err := s.ListOrdersUseCase.Execute()
+func (s *OrderService) ListOrders(ctx context.Context, in *pb.ListOrdersRequest) (*pb.ListOrdersResponse, error) {
+	outputs, err := s.ListOrderUseCase.ListExecute()
 	if err != nil {
 		return nil, err
 	}
 
-	orders := []*pb.Order{}
-
-	for _, order := range output.Orders {
-		orders = append(orders, &pb.Order{
-			Id:         order.ID,
-			Price:      order.Price,
-			Tax:        order.Tax,
-			FinalPrice: order.FinalPrice,
-		})
+	var orders []*pb.Order
+	for _, output := range outputs {
+		order := &pb.Order{
+			Id:         output.ID,
+			Price:      float32(output.Price),
+			Tax:        float32(output.Tax),
+			FinalPrice: float32(output.FinalPrice),
+		}
+		orders = append(orders, order)
 	}
 
 	return &pb.ListOrdersResponse{
-		Quantity: int32(output.Quantity),
-		Orders:   orders,
+		Orders: orders,
 	}, nil
 }

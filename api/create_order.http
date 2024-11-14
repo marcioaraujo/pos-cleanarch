@@ -1,25 +1,23 @@
-
-# pacote REST Client
-
 POST http://localhost:8000/order HTTP/1.1
 Host: localhost:8000
 Content-Type: application/json
 
 {
-    "id":"Teste 2",
-    "price": 100.6,
-    "tax": 0.5
+    "id":"Teste 1",
+    "price": 300,
+    "tax": 0.50
 }
 
 
+# HTTP/1.1 200 OK
+# Date: Thu, 14 Nov 2024 01:06:14 GMT
+# Content-Length: 59
+# Content-Type: text/plain; charset=utf-8
+# Connection: close
 
-
-# GraphQL
-# mutation CreateOrder{
-#   createOrder(input:{ ID: "Teste Graphl" , Price: 110.2, Tax: 2.0 }) {
-# 		ID
-# 		Price
-#   	Tax
-#     FinalPrice
-#   }
+# {
+#   "id": "Teste 1",
+#   "price": 300,
+#   "tax": 0.5,
+#   "final_price": 300.5
 # }

@@ -1,99 +1,76 @@
-# Desafio 3 da Pós-graduação Full Cycle Go Expert
+# Clean Architecture - Order Management System
 
-## Enunciado do desafio
+## Desafio Proposto
 
-Para este desafio, você precisará criar o usecase de listagem das orders.
-Esta listagem precisa ser feita com:
+Bem-vindo, Devs!
 
-- Endpoint REST (GET /order)
-- Service ListOrders com GRPC
-- Query ListOrders GraphQL
-  Não esqueça de criar as migrações necessárias e o arquivo api.http com a request para criar e listar as orders.
+Chegou a hora de colocar em prática seus conhecimentos. O desafio consiste em criar o caso de uso para a listagem das ordens (`Orders`). Essa listagem deve ser implementada utilizando:
 
-Para a criação do banco de dados, utilize o Docker (Dockerfile / docker-compose.yaml), com isso ao rodar o comando docker compose up tudo deverá subir, preparando o banco de dados.
+- **Endpoint REST:** `GET /order`
+- **Serviço gRPC:** `ListOrders`
+- **Query GraphQL:** `ListOrders`
+
+Além disso, não se esqueça de criar as migrações necessárias e o arquivo `api.http` contendo as requisições para criar e listar as ordens.
+
+Para a criação do banco de dados, utilize o Docker. O comando `docker compose up` deverá configurar e iniciar tudo automaticamente, incluindo o banco de dados.
 
 Inclua um README.md com os passos a serem executados no desafio e a porta em que a aplicação deverá responder em cada serviço.
 
-## Instruções de desenvolvimento e teste
+# Como rodar o projeto:
 
-Para regerar fontes da injeção de dependências (Wire):
-https://github.com/google/wire
+1. **Clone o repositório:**
 
-```bash
-./make_wire.sh
-```
+   ```bash
+   git clone https://github.com/marcioaraujo/pos-cleanarch.git && cd pos-cleanarch
+   ```
 
-Para regerar fontes GraphQL:
-https://github.com/graphql-go/graphql
+2. **Instruções para boot:**
 
-```bash
-./make_gql.sh
-```
+   ```bash
+   docker compose up -d
+   ```
 
-Para regerar fontes gRPC:
-https://grpc.io/docs/languages/go/quickstart/
+   > **Nota:** Na plataforma Apple M3 apresentou problemas de compatibilidade de containers arm64/amd64, resultando indisponibilidade do rabbitmq ou mysql.
 
-```bash
-./make_grpc_proto.sh
-```
+   > **Nota:** Tudo se resolveu com reinicio do docker:
 
-Para rodar migrations:
+   ```bash
+   docker-compose down && docker-compose up -d
+   ```
 
-```bash
-migrate -path=sql/migrations -database "mysql://root:root@tcp(localhost:3306)/orders" -verbose up
-```
+# Validação do Desafio
 
-ou
+Os serviços são acessados nestas portas:
 
-```bash
-./make_migrate.sh
+- **Web:** `localhost:8000`
+- **gRPC:** `localhost:50051`
+- **GraphQL:** `localhost:8080`
 
-```
-
-## Instruções de uso
-
-Inicializar dependências da aplicação (Banco de dados MySQL e Broker de mensageria RabbitMQ)
-
-```bash
-docker compose up -d
-```
-
-Executar aplicação
-
-```bash
-./init.sh
-```
-
-ou
-
-```bash
-cd cmd/ordersystem
-go run main.go wire_gen.go
-```
-
-Portas padrão:
-
-- Servidor HTTP: 8000
-- Servidor gRPC: 50051
-- Servidor GraphQL: 8080
-
-### Testando a Aplicação
+### Teste
 
 #### WebServer
 
-As requisições REST para criar e listar ordens podem ser testadas utilizando os arquivos `api/create_order.http` e `api/list_order.http`.
+Na pasta api estão os arquivos para execução das chamadas api Rest `api/create_order.http` e `api/list_order.http`.
+
+> **Nota:** Caso queira, instale a extensão REST Client no vscode, para facilitar a exeção de arquivos .http
 
 #### gRPC
 
 Para testar via gRPC, utilize o [Evans](https://github.com/ktr0731/evans):
 
-1. Conecte-se ao serviço:
+> **Nota:** Na plataforma Apple pode ser instalado pelo seguinte comando:
+
+```bash
+    brew install evans
+```
+
+1. Consumindo o serviço:
 
    ```bash
    evans -r repl --host 127.0.0.1 --port 50051
    ```
 
-2. Navegue até o package:
+2. Vá até package:
 
    ```bash
    package pb
@@ -119,7 +96,7 @@ Para acessar o serviço GraphQL:
 
    ```graphql
    mutation createOrder {
-     createOrder(input: { id: "xxxxx", Price: 10.2, Tax: 2.0 }) {
+     createOrder(input: { id: "unique_id", Price: 18.50, Tax: 3.2 }) {
        id
        Price
        Tax

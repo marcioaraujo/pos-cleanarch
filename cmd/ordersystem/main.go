@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
 
@@ -16,11 +15,11 @@ import (
 	"github.com/marcioaraujo/pos-cleanarch/internal/infra/grpc/service"
 	"github.com/marcioaraujo/pos-cleanarch/internal/infra/web/webserver"
 	"github.com/marcioaraujo/pos-cleanarch/pkg/events"
+
 	"github.com/streadway/amqp"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 
-	// mysql
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -36,35 +35,26 @@ func main() {
 	}
 	defer db.Close()
 
-	rabbitMQChannel := getRabbitMQChannel()
+	rabbitMQChannel := getRabbitMQChannel(configs.AmqpUser, configs.AmqpPass, configs.AmqpHost, configs.AmqpPort)
 
 	eventDispatcher := events.NewEventDispatcher()
 	eventDispatcher.Register("OrderCreated", &handler.OrderCreatedHandler{
 		RabbitMQChannel: rabbitMQChannel,
 	})
-	eventDispatcher.Register("OrderListed", &handler.OrderListedHandler{
-		RabbitMQChannel: rabbitMQChannel,
-	})
 
 	createOrderUseCase := NewCreateOrderUseCase(db, eventDispatcher)
-	listOrdersUseCase := NewListOrderUseCase(db, eventDispatcher)
+	listOrderUseCase := NewListOrderUseCase(db)
 
 	webserver := webserver.NewWebServer(configs.WebServerPort)
-
 	webOrderHandler := NewWebOrderHandler(db, eventDispatcher)
-	webOrderListHandler := NewWebOrderListHandler(db, eventDispatcher)
-
 	webserver.AddHandler("/order", webOrderHandler.Create)
-	webserver.AddHandler("/orders", webOrderListHandler.List)
-
+	webserver.AddHandler("/orders", webOrderHandler.ListOrders)
 	fmt.Println("Starting web server on port", configs.WebServerPort)
 	go webserver.Start()
 
 	grpcServer := grpc.NewServer()
-
-	orderService := service.NewOrderService(*createOrderUseCase, *listOrdersUseCase)
-	pb.RegisterOrderServiceServer(grpcServer, orderService)
-
+	OrderService := service.NewOrderService(*createOrderUseCase, *listOrderUseCase)
+	pb.RegisterOrderServiceServer(grpcServer, OrderService)
 	reflection.Register(grpcServer)
 
 	fmt.Println("Starting gRPC server on port", configs.GRPCServerPort)
@@ -76,28 +66,20 @@ func main() {
 
 	srv := graphql_handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{
 		CreateOrderUseCase: *createOrderUseCase,
-		ListOrdersUseCase:  *listOrdersUseCase,
+		ListOrderUseCase:   *listOrderUseCase,
 	}}))
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", srv)
 
 	fmt.Println("Starting GraphQL server on port", configs.GraphQLServerPort)
-	// sem go para não sair do progrma, alternativa para usar go aqui seria waitgroups (caos queira)
 	http.ListenAndServe(":"+configs.GraphQLServerPort, nil)
 }
 
-func getRabbitMQChannel() *amqp.Channel {
-
-	configs, err := configs.LoadConfig(".")
-	if err != nil {
-		panic(err)
-	}
-
-	// Conecta ao RabbitMQ usando as configurações
-	conn, err := amqp.Dial(fmt.Sprintf("amqp://%s:%s@%s:%s", configs.RABBITMQ_USER, configs.RABBITMQ_PASS, configs.RABBITMQ_IP, configs.RABBITMQ_PORT))
+func getRabbitMQChannel(amqpUser, amqpPass, amqpHost, amqpPort string) *amqp.Channel {
+	amqpConnUrl := fmt.Sprintf("amqp://%s:%s@%s:%s/", amqpUser, amqpPass, amqpHost, amqpPort)
+	conn, err := amqp.Dial(amqpConnUrl)
 
 	if err != nil {
-		log.Fatalf("Failed to connect to RabbitMQ: %s", err)
 		panic(err)
 	}
 	ch, err := conn.Channel()
