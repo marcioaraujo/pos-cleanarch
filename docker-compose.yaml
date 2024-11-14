@@ -59,6 +59,6 @@ services:
     env_file:
       - ./cmd/ordersystem/.env
     ports:
-      - "8000:8000"      # Porta para o servidor web
-      - "50051:50051"    # Porta para o servidor gRPC
-      - "8080:8080"      # Porta para o servidor GraphQL
+      - "8000:8000"      #  web
+      - "50051:50051"    #  gRPC
+      - "8080:8080"      #  GraphQL
